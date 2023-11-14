@@ -1,75 +1,50 @@
 #include "main.h"
-#include <stdarg.h>
-#include <unistd.h>
 
 /**
- * print_char - Helper function to print a character
- * @c: Character to print
- * @count: Pointer to the count of characters printed
- */
-static void print_char(char c, int *count)
-{
-	write(1, &c, 1);
-	(*count)++;
-}
-
-
-/**
- * print_str - Helper function to print a string
- * @str: String to print
- * @count: Pointer to the count of characters printed
- */
-static void print_str(char *str, int *count)
-{
-	while (*str)
-	{
-		write(1, str++, 1);
-		(*count)++;
-	}
-}
-
-/**
- * _printf - Custom printf function
- * @format: Format string
- * Return: Number of characters printed (excluding null byte)
+ * _printf - produces output according to a format
+ * @format: format string containing the characters and the specifiers
+ * Description: this function will call the get_print() function that will
+ * determine which printing function to call depending on the conversion
+ * specifiers contained into fmt
+ * Return: length of the formatted output string
  */
 int _printf(const char *format, ...)
 {
-	if (!format)
+	int (*pfunc)(va_list, flags_t *);
+	const char *p;
+	va_list arguments;
+	flags_t flags = {0, 0, 0};
+
+	register int count = 0;
+
+	va_start(arguments, format);
+	if (!format || (format[0] == '%' && !format[1]))
 		return (-1);
 
-	va_list args_list;
-	int count = 0;
-
-	va_start(args_list, format);
-	while (*format)
+	if (format[0] == '%' && format[1] == ' ' && !format[2])
+		return (-1);
+	for (p = format; *p; p++)
 	{
-		if (*format != '%')
+		if (*p == '%')
 		{
-			print_char(*format, &count);
+			p++;
+			if (*p == '%')
+			{
+				count += _putchar('%');
+				continue;
+			}
+			while (get_flag(*p, &flags))
+				p++;
+
+			pfunc = get_print(*p);
+			count += (pfunc)
+				? pfunc(arguments, &flags)
+				: _printf("%%%c", *p);
 		}
 		else
-		{
-			format++;
-			if (*format == '%' || *format == '\0')
-			{
-				print_char('%', &count);
-			}
-			else if (*format == 'c')
-			{
-				char c = va_arg(args_list, int);
-
-				print_char(c, &count);
-			}
-			else if (*format == 's')
-			{
-				char *str = va_arg(args_list, char*);
-
-				print_str(str, &count);
-			}
-		}
-		format++;
+			count += _putchar(*p);
 	}
-	va_end(args_list);
+	_putchar(-1);
+	va_end(arguments);
 	return (count);
 }
