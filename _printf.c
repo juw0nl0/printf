@@ -40,11 +40,11 @@ int _printf(const char *format, ...)
 			}
 			else if (*format == 's')
 			{
-				char *str = va_arg(args_list, char*);
+				char *str = va_arg(args_list, char *);
 
 				if (str == NULL)
 				{
-					str - "(null)";
+					str = "(null)";
 				}
 				int str_len = 0;
 
@@ -58,11 +58,6 @@ int _printf(const char *format, ...)
 			else if (*format == '\0')
 			{
 				break;
-			}
-			else
-			{
-				write(1, format - 1, 2)
-					count += 2;
 			}
 		}
 		format++;
